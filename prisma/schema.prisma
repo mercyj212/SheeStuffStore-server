@@ -1,0 +1,76 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  name           String
+  tagline        String
+  category       String
+  price          Float
+  originalPrice  Float?
+  rating         Float       @default(5.0)
+  reviewCount    Int         @default(0)
+  image          String
+  secondaryImage String?
+  description    String
+  volume         String
+  badges         String?     // Stored as JSON string e.g. ["BEST SELLER"]
+  benefits       String      // Stored as JSON string
+  ingredients    String      // Stored as JSON string
+  howToUse       String
+  skinTypes      String      // Stored as JSON string
+  inStock        Boolean     @default(true)
+  isFeatured     Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  reviews        Review[]
+  orderItems     OrderItem[]
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  orderNumber      String      @unique
+  customerName     String
+  email            String
+  address          String
+  city             String
+  state            String
+  zip              String
+  total            Float
+  status           String      @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
+  paymentStatus    String      @default("UNPAID") // UNPAID, PAID
+  stripeSessionId  String?     @unique
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  productId     String
+  quantity      Int
+  price         Float
+  selectedShade String?
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  author       String
+  rating       Int
+  title        String
+  comment      String
+  verified     Boolean  @default(true)
+  helpfulCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
